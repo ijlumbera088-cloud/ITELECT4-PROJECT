@@ -1,0 +1,14 @@
+import { User, Course } from "./index";
+
+// Generic function: getFirst
+export function getFirst<T>(items: T[]): T | undefined {
+    return items.length > 0 ? items[0] : undefined;
+}
+
+// --- Quick verification execution ---
+const sampleUsers: User[] = [
+    { id: 1, name: "Alice", email: "alice@dlsl.edu.ph", role: "STUDENT" as any }
+];
+
+const firstUser = getFirst<User>(sampleUsers);
+console.log("First User:", firstUser);
