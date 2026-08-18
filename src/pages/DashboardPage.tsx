@@ -1,70 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useToggle } from '../../hooks/useToggle';
 import { usePrevious } from '../../hooks/usePrevious';
 import { CourseCard } from '../components/CourseCard';
-import { SubmissionBadge } from '../components/SubmissionBadge';
-import { UserCard } from '../components/UserCard';
-
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-}
-
-interface Submission {
-  id: number;
-  courseId: string;
-  studentId: number;
-  grade?: number;
-  status: 'submitted' | 'late' | 'missing';
-}
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-}
-
-const MOCK_COURSES: Course[] = [
-  { id: '1', title: 'ITELECT4', description: 'React and TypeScript Web Development' },
-  { id: '2', title: 'CCPROG1', description: 'Introduction to Programming' },
-  { id: '3', title: 'CCDSALG', description: 'Data Structures and Algorithms' },
-  { id: '4', title: 'NETPROG', description: 'Networking and Protocols' },
-];
-
-const MOCK_USERS: User[] = [
-  { id: 1, name: 'Alice Santos', email: 'alice@dlsl.edu.ph', role: 'Student' },
-  { id: 2, name: 'Roberto Cruz', email: 'roberto@dlsl.edu.ph', role: 'Teacher' },
-];
-
-const MOCK_SUBMISSIONS: Submission[] = [
-  { id: 1, courseId: '1', studentId: 1, grade: 93, status: 'submitted' },
-  { id: 2, courseId: '3', studentId: 1, status: 'late' },
-];
-
-const getCourseTitle = (id: string) => MOCK_COURSES.find((course) => course.id === id)?.title ?? 'Unknown Course';
-const getStudentName = (id: number) => MOCK_USERS.find((user) => user.id === id)?.name ?? 'Unknown Student';
+import { useQuery } from '@tanstack/react-query';
+import { api, Item, EventItem } from '../api/client';
+import { useUiStore } from '../store/uiStore';
 
 const DashboardPage: React.FC = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [darkMode, toggleDarkMode] = useToggle(false);
+  const darkMode = useUiStore((s) => s.darkMode);
+  const toggleDarkMode = useUiStore((s) => s.toggleDarkMode);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const prevSearchTerm = usePrevious(searchTerm);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCourses(MOCK_COURSES);
-      setIsLoading(false);
-      inputRef.current?.focus();
-    }, 400);
+  const { data: items, isLoading: itemsLoading } = useQuery<Item[], Error>({ queryKey: ['items'], queryFn: () => api.getItems() });
+  const { data: events, isLoading: eventsLoading } = useQuery<EventItem[], Error>({ queryKey: ['events'], queryFn: () => api.getEvents() });
 
-    return () => clearTimeout(timer);
+  useEffect(() => {
+    inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
@@ -75,9 +30,11 @@ const DashboardPage: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredCourses = courses.filter((course) =>
-    course.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredItems = (items ?? []).filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const isLoading = itemsLoading || eventsLoading;
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-50 sm:px-6 lg:px-10">
@@ -126,33 +83,33 @@ const DashboardPage: React.FC = () => {
             <div className="rounded-[32px] border border-slate-200 bg-white/90 p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
               <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-2xl font-semibold text-slate-950 dark:text-slate-100">Available Courses</h2>
+                  <h2 className="text-2xl font-semibold text-slate-950 dark:text-slate-100">Available Items</h2>
                   <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                    Courses render from state and reflow using responsive Tailwind grids.
+                    Items load from the API and reflow using responsive Tailwind grids.
                   </p>
                 </div>
                 <span className="rounded-full bg-indigo-100 px-4 py-2 text-sm font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200">
-                  {filteredCourses.length} course{filteredCourses.length === 1 ? '' : 's'} found
+                  {(filteredItems ?? []).length} item{(filteredItems ?? []).length === 1 ? '' : 's'} found
                 </span>
               </div>
 
               {isLoading ? (
                 <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-slate-700 shadow-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-200">
-                  <p className="text-lg font-semibold">Loading courses...</p>
-                  <p className="mt-2 text-sm">Preparing your course dashboard. Please wait a moment.</p>
+                  <p className="text-lg font-semibold">Loading items...</p>
+                  <p className="mt-2 text-sm">Connecting to local API. Make sure `npm run api` is running.</p>
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
-                  {filteredCourses.map((course, index) => (
-                    <div key={course.id}>
+                  {filteredItems.map((item, index) => (
+                    <div key={item.id}>
                       <CourseCard
-                        title={course.title}
-                        description={course.description}
+                        title={item.name}
+                        description={item.description ?? ''}
                         variant={index % 2 === 0 ? 'default' : 'compact'}
                       />
                       <div className="mt-3 flex gap-2">
                         <button
-                          onClick={() => navigate(`/courses/${course.id}`)}
+                          onClick={() => navigate(`/items/${item.id}`)}
                           className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
                         >
                           View
@@ -166,32 +123,21 @@ const DashboardPage: React.FC = () => {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-[32px] border border-slate-200 bg-white/90 p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
-                <h2 className="text-xl font-semibold text-slate-950 dark:text-slate-100">Recent submissions</h2>
+                <h2 className="text-xl font-semibold text-slate-950 dark:text-slate-100">Upcoming events</h2>
                 <div className="mt-5 space-y-4">
-                  {MOCK_SUBMISSIONS.map((submission) => (
-                    <SubmissionBadge
-                      key={submission.id}
-                      course={getCourseTitle(submission.courseId)}
-                      student={getStudentName(submission.studentId)}
-                      grade={submission.grade}
-                      status={submission.status}
-                    />
+                  {(events ?? []).map((ev) => (
+                    <div key={ev.id} className="rounded-3xl border p-4">
+                      <h3 className="font-semibold">{ev.title}</h3>
+                      <p className="text-sm">{new Date(ev.date).toLocaleString()} — {ev.location}</p>
+                    </div>
                   ))}
                 </div>
               </div>
 
               <div className="rounded-[32px] border border-slate-200 bg-white/90 p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
-                <h2 className="text-xl font-semibold text-slate-950 dark:text-slate-100">Team members</h2>
+                <h2 className="text-xl font-semibold text-slate-950 dark:text-slate-100">Quick actions</h2>
                 <div className="mt-5 space-y-4">
-                  {MOCK_USERS.map((user, index) => (
-                    <UserCard
-                      key={user.id}
-                      name={user.name}
-                      email={user.email}
-                      role={user.role}
-                      compact={index === 1}
-                    />
-                  ))}
+                  <button onClick={() => navigate('/items')} className="rounded bg-indigo-600 px-4 py-2 text-white">Browse items</button>
                 </div>
               </div>
             </div>

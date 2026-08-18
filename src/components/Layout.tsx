@@ -7,7 +7,7 @@ const Layout: React.FC = () => (
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/" className="font-semibold text-lg">MyGT App</Link>
-          <Link to="/courses" className="text-sm text-slate-600">Courses</Link>
+          <Link to="/items" className="text-sm text-slate-600">Items</Link>
           <Link to="/protected" className="text-sm text-slate-600">Protected</Link>
         </div>
         <div>
