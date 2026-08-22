@@ -1,10 +1,14 @@
 {
-  "items": [
-    { "id": 1, "name": "Blue Umbrella", "description": "Lost near library", "found": false, "createdAt": "2026-08-01T10:00:00.000Z" },
-    { "id": 2, "name": "Red Water Bottle", "description": "Found at cafeteria", "found": true, "createdAt": "2026-08-05T12:30:00.000Z" }
+  "users": [
+    { "id": 1, "email": "john@example.com", "password": "password123", "name": "John Doe" },
+    { "id": 2, "email": "jane@example.com", "password": "password123", "name": "Jane Smith" },
+    { "id": 3, "email": "mike@example.com", "password": "password123", "name": "Mike Johnson" }
   ],
-  "events": [
-    { "id": 1, "title": "Study Group", "date": "2026-09-01T18:00:00.000Z", "location": "Room 201" },
-    { "id": 2, "title": "Hack Night", "date": "2026-09-10T19:30:00.000Z", "location": "Lab A" }
+  "items": [
+    { "id": 1, "title": "Blue Umbrella", "description": "Navy blue umbrella with wooden handle, lost near the library entrance", "category": "Accessories", "status": "LOST", "location": "Library Entrance", "userId": 1, "userName": "John Doe", "userEmail": "john@example.com", "userPhone": "09123456789", "imageUrl": null, "createdAt": "2026-08-15T10:00:00.000Z", "resolved": false },
+    { "id": 2, "title": "Red Water Bottle", "description": "Stainless steel water bottle with black cap, found at cafeteria", "category": "Accessories", "status": "FOUND", "location": "Cafeteria", "userId": 2, "userName": "Jane Smith", "userEmail": "jane@example.com", "userPhone": "09198765432", "imageUrl": null, "createdAt": "2026-08-16T12:30:00.000Z", "resolved": false },
+    { "id": 3, "title": "iPhone 13 Pro", "description": "Space gray iPhone with blue case, lost during classes", "category": "Electronics", "status": "LOST", "location": "Building A, 3rd Floor", "userId": 1, "userName": "John Doe", "userEmail": "john@example.com", "userPhone": "09123456789", "imageUrl": null, "createdAt": "2026-08-17T08:15:00.000Z", "resolved": false },
+    { "id": 4, "title": "House Keys", "description": "Set of 3 keys on a black keychain, found near the gate", "category": "Accessories", "status": "FOUND", "location": "Campus Gate", "userId": 3, "userName": "Mike Johnson", "userEmail": "mike@example.com", "userPhone": "09145678901", "imageUrl": null, "createdAt": "2026-08-18T14:45:00.000Z", "resolved": false },
+    { "id": 5, "title": "Student ID Card", "description": "ID with name 'Maria Santos', found in the library study area", "category": "Documents", "status": "FOUND", "location": "Library Study Area", "userId": 2, "userName": "Jane Smith", "userEmail": "jane@example.com", "userPhone": "09198765432", "imageUrl": null, "createdAt": "2026-08-19T11:20:00.000Z", "resolved": false }
   ]
 }
