@@ -1,4 +1,5 @@
 import create from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface UiState {
   darkMode: boolean;
@@ -6,8 +7,16 @@ interface UiState {
   toggleDarkMode: () => void;
 }
 
-export const useUiStore = create<UiState>((set) => ({
-  darkMode: false,
-  setDarkMode: (v: boolean) => set({ darkMode: v }),
-  toggleDarkMode: () => set((s) => ({ darkMode: !s.darkMode })),
-}));
+export const useUiStore = create<UiState>()(
+  persist(
+    (set) => ({
+      darkMode: false,
+      setDarkMode: (v: boolean) => set({ darkMode: v }),
+      toggleDarkMode: () => set((s) => ({ darkMode: !s.darkMode })),
+    }),
+    {
+      name: 'ui-storage',
+      partialize: (state) => ({ darkMode: state.darkMode }),
+    }
+  )
+);
