@@ -74,19 +74,35 @@ export const api = {
   // Lost & Found Items
   getItems: () => getJson<LostFoundItem[]>('/items'),
   getItem: (id: number) => getJson<LostFoundItem>(`/items/${id}`),
-  createItem: (payload: CreateLostFoundItemDto) => 
-    fetch(`${API_BASE}/items`, { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ ...payload, createdAt: new Date().toISOString(), resolved: false }) 
-    }).then((r) => r.json() as Promise<LostFoundItem>),
+  createItem: async (payload: CreateLostFoundItemDto) => {
+    const response = await fetch(`${API_BASE}/items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, createdAt: new Date().toISOString(), resolved: false })
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || 'Unable to create item. Please try again.');
+    }
+
+    return response.json() as Promise<LostFoundItem>;
+  },
   
-  updateItem: (id: number, payload: Partial<CreateLostFoundItemDto>) =>
-    fetch(`${API_BASE}/items/${id}`, {
+  updateItem: async (id: number, payload: Partial<CreateLostFoundItemDto>) => {
+    const response = await fetch(`${API_BASE}/items/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
-    }).then((r) => r.json() as Promise<LostFoundItem>),
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || 'Unable to update item. Please try again.');
+    }
+
+    return response.json() as Promise<LostFoundItem>;
+  },
 
   deleteItem: (id: number) =>
     fetch(`${API_BASE}/items/${id}`, { method: 'DELETE' }).then((r) => r.json()),
