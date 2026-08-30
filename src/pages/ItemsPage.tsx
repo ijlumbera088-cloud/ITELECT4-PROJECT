@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '../api/client';
 import { CreateLostFoundItemDto, ItemStatus } from '../../types/index';
 import { useAuthStore } from '../store/authStore';
+import { ItemSubmissionFormValues, ItemSubmissionSchema } from '../lib/itemSchema';
 
 const ItemsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -16,30 +20,36 @@ const ItemsPage: React.FC = () => {
     }
   }, [user, navigate]);
 
-  const [formData, setFormData] = useState<CreateLostFoundItemDto>({
-    title: '',
-    description: '',
-    category: 'Accessories',
-    status: ItemStatus.LOST,
-    location: '',
-    userId: user?.id || 1,
-    userName: user?.name || 'User',
-    userEmail: user?.email || '',
-    userPhone: '',
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<ItemSubmissionFormValues>({
+    resolver: zodResolver(ItemSubmissionSchema),
+    mode: 'onSubmit',
+    defaultValues: {
+      title: '',
+      description: '',
+      category: 'Accessories',
+      status: ItemStatus.LOST,
+      location: '',
+      userId: user?.id ?? 1,
+      userName: user?.name ?? 'User',
+      userEmail: user?.email ?? '',
+      userPhone: '',
+    },
   });
 
   useEffect(() => {
     if (user) {
-      setFormData(prev => ({
-        ...prev,
-        userId: user.id,
-        userName: user.name,
-        userEmail: user.email,
-      }));
+      setValue('userId', user.id);
+      setValue('userName', user.name);
+      setValue('userEmail', user.email);
+      reset((current) => ({ ...current, userId: user.id, userName: user.name, userEmail: user.email }));
     }
-  }, [user]);
-
-  const [submitted, setSubmitted] = useState(false);
+  }, [user, setValue, reset]);
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateLostFoundItemDto) => api.createItem(payload),
@@ -52,21 +62,20 @@ const ItemsPage: React.FC = () => {
     },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const onSubmit = (values: ItemSubmissionFormValues) => {
+    const payload: CreateLostFoundItemDto = {
+      title: values.title,
+      description: values.description,
+      category: values.category,
+      status: values.status,
+      location: values.location,
+      userId: values.userId,
+      userName: values.userName,
+      userEmail: values.userEmail,
+      userPhone: values.userPhone,
+    };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.description || !formData.userEmail || !formData.userPhone) {
-      alert('Please fill in all required fields');
-      return;
-    }
-    createMutation.mutate(formData);
+    createMutation.mutate(payload);
   };
 
   const categories = ['Accessories', 'Electronics', 'Documents', 'Clothing', 'Books', 'Sports Equipment', 'Other'];
@@ -96,32 +105,26 @@ const ItemsPage: React.FC = () => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
-              
-              {/* Status Selection */}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Item Status *</label>
                 <div className="mt-3 flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex cursor-pointer items-center gap-2">
                     <input
                       type="radio"
-                      name="status"
                       value={ItemStatus.LOST}
-                      checked={formData.status === ItemStatus.LOST}
-                      onChange={handleChange}
+                      {...register('status')}
                       className="h-4 w-4"
                     />
                     <span className="flex items-center gap-2">
                       <span className="text-lg">🔴</span> I Lost Something
                     </span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex cursor-pointer items-center gap-2">
                     <input
                       type="radio"
-                      name="status"
                       value={ItemStatus.FOUND}
-                      checked={formData.status === ItemStatus.FOUND}
-                      onChange={handleChange}
+                      {...register('status')}
                       className="h-4 w-4"
                     />
                     <span className="flex items-center gap-2">
@@ -129,95 +132,83 @@ const ItemsPage: React.FC = () => {
                     </span>
                   </label>
                 </div>
+                {errors.status && <p className="mt-2 text-sm text-red-600">{errors.status.message}</p>}
               </div>
 
-              {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Item Name/Title *</label>
                 <input
                   type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
                   placeholder="e.g., Blue Umbrella, AirPods Pro, Student ID"
+                  {...register('title')}
                   className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20"
                 />
+                {errors.title && <p className="mt-2 text-sm text-red-600">{errors.title.message}</p>}
               </div>
 
-              {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Category *</label>
                 <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
+                  {...register('category')}
                   className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
+                {errors.category && <p className="mt-2 text-sm text-red-600">{errors.category.message}</p>}
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Description *</label>
                 <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Describe the item, color, brand, any identifying marks, etc."
                   rows={4}
+                  placeholder="Describe the item, color, brand, any identifying marks, etc."
+                  {...register('description')}
                   className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20"
                 />
+                {errors.description && <p className="mt-2 text-sm text-red-600">{errors.description.message}</p>}
               </div>
 
-              {/* Location */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Location (Where lost/found) *</label>
                 <input
                   type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
                   placeholder="e.g., Library, Building A 3rd Floor, Campus Gate"
+                  {...register('location')}
                   className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20"
                 />
+                {errors.location && <p className="mt-2 text-sm text-red-600">{errors.location.message}</p>}
               </div>
 
-              {/* Contact Information */}
               <div className="border-t border-slate-200 pt-6 dark:border-slate-700">
                 <h3 className="mb-4 text-lg font-semibold">Your Contact Information</h3>
-
                 <div className="space-y-4">
-                  {/* Phone */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number *</label>
                     <input
                       type="tel"
-                      name="userPhone"
-                      value={formData.userPhone}
-                      onChange={handleChange}
                       placeholder="09123456789"
+                      {...register('userPhone')}
                       className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20"
                     />
+                    {errors.userPhone && <p className="mt-2 text-sm text-red-600">{errors.userPhone.message}</p>}
                   </div>
 
-                  <div className="rounded-lg bg-slate-100 dark:bg-slate-950 p-4 space-y-2 text-sm">
+                  <div className="rounded-lg bg-slate-100 p-4 text-sm dark:bg-slate-950">
                     <p><strong>Name:</strong> {user.name}</p>
                     <p><strong>Email:</strong> {user.email}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Buttons */}
               <div className="flex gap-4">
                 <button
                   type="submit"
-                  disabled={createMutation.isPending}
+                  disabled={createMutation.isPending || isSubmitting}
                   className="flex-1 rounded-lg bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50 dark:hover:bg-indigo-700"
                 >
-                  {createMutation.isPending ? 'Posting...' : '✅ Post Item'}
+                  {createMutation.isPending || isSubmitting ? 'Posting...' : '✅ Post Item'}
                 </button>
                 <button
                   type="button"
