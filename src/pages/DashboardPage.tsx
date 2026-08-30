@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { usePrevious } from '../../hooks/usePrevious';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { useUiStore } from '../store/uiStore';
 import { LostFoundItem, ItemStatus } from '../../types/index';
@@ -16,9 +16,18 @@ const DashboardPage: React.FC = () => {
   const prevSearchTerm = usePrevious(searchTerm);
   const navigate = useNavigate();
 
+  const queryClient = useQueryClient();
+
   const { data: items = [], isLoading: itemsLoading } = useQuery<LostFoundItem[], Error>({ 
     queryKey: ['items'], 
     queryFn: () => api.getItems() 
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.deleteItem(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+    },
   });
 
   useEffect(() => {
@@ -170,7 +179,7 @@ const DashboardPage: React.FC = () => {
                     <div className="mt-3 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                       <span>👤 {item.userName}</span>
                     </div>
-                    <div className="mt-3">
+                    <div className="mt-3 space-y-2">
                       <button
                         onClick={(e) => {
                           e.preventDefault();
@@ -179,6 +188,20 @@ const DashboardPage: React.FC = () => {
                         className="w-full rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 dark:hover:bg-indigo-800"
                       >
                         View Details
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+
+                          if (window.confirm(`Delete "${item.title}"?`)) {
+                            deleteMutation.mutate(item.id);
+                          }
+                        }}
+                        disabled={deleteMutation.isPending}
+                        className="w-full rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
+                      >
+                        Delete Item
                       </button>
                     </div>
                   </Link>
