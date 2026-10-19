@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { LostFoundItem } from '../../types/index';
 
@@ -10,10 +10,20 @@ const ItemDetail: React.FC = () => {
   const idNum = Number(id);
   const navigate = useNavigate();
 
+  const queryClient = useQueryClient();
+
   const { data: item, isLoading, isError } = useQuery<LostFoundItem, Error>({ 
     queryKey: ['items', idNum], 
     queryFn: () => api.getItem(idNum), 
     enabled: !!idNum 
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (itemId: number) => api.deleteItem(itemId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+      navigate('/');
+    },
   });
 
   if (isLoading) return (
@@ -151,6 +161,18 @@ const ItemDetail: React.FC = () => {
             >
               📞 Call
             </a>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm(`Delete "${item.title}"? This action cannot be undone.`)) {
+                  deleteMutation.mutate(item.id);
+                }
+              }}
+              disabled={deleteMutation.isPending}
+              className="flex-1 rounded-lg border border-red-300 bg-red-50 px-6 py-3 text-center font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
+            >
+              {deleteMutation.isPending ? 'Deleting...' : '🗑 Delete Item'}
+            </button>
           </div>
 
           {/* Status Info */}

@@ -21,21 +21,6 @@
   ],
   "items": [
     {
-      "id": 1,
-      "title": "Blue Umbrella",
-      "description": "Navy blue umbrella with wooden handle, lost near the library entrance",
-      "category": "Accessories",
-      "status": "LOST",
-      "location": "Library Entrance",
-      "userId": 1,
-      "userName": "John Doe",
-      "userEmail": "john@example.com",
-      "userPhone": "09123456789",
-      "imageUrl": null,
-      "createdAt": "2026-08-15T10:00:00.000Z",
-      "resolved": false
-    },
-    {
       "id": 2,
       "title": "Red Water Bottle",
       "description": "Stainless steel water bottle with black cap, found at cafeteria",
@@ -108,6 +93,20 @@
       "createdAt": "2026-08-22T00:52:58.420Z",
       "resolved": false,
       "id": 6
+    },
+    {
+      "title": "Black wallet",
+      "description": "Black leather wallet with initials J.D. and a silver zipper.",
+      "category": "Accessories",
+      "status": "LOST",
+      "location": "Main Library second floor",
+      "userId": 1,
+      "userName": "John Doe",
+      "userEmail": "john@example.com",
+      "userPhone": "09129998888",
+      "createdAt": "2026-08-30T14:00:21.069Z",
+      "resolved": false,
+      "id": 8
     }
   ]
 }
