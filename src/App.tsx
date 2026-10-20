@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import ItemsPage from './pages/ItemsPage';
 import ItemDetail from './pages/ItemDetail';
 import LoginPage from './pages/LoginPage';
+import AIReviewPage from './pages/AIReviewPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -16,6 +17,7 @@ const App: React.FC = () => (
         <Route index element={<DashboardPage />} />
         <Route path="items" element={<ItemsPage />} />
         <Route path="items/:id" element={<ItemDetail />} />
+        <Route path="ai-review" element={<AIReviewPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="protected" element={<ProtectedRoute />}>
           <Route index element={<div className="p-6">Protected content</div>} />

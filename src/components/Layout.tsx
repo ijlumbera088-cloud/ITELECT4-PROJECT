@@ -27,6 +27,9 @@ const Layout: React.FC = () => {
               <Link to="/items" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
                 Post Item
               </Link>
+              <Link to="/ai-review" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+                AI Review
+              </Link>
             </div>
           </div>
           
