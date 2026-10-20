@@ -212,6 +212,27 @@ export const api = {
   getLostItems: () => getJson<LostFoundItem[]>('/api/items?status=LOST', getStoredToken() || undefined),
   getFoundItems: () => getJson<LostFoundItem[]>('/api/items?status=FOUND', getStoredToken() || undefined),
 
+  reviewItem: async (payload: {
+    title: string;
+    description: string;
+    category: string;
+    location: string;
+    status?: string;
+  }) => {
+    const response = await fetch(`${API_BASE}/api/ai/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || 'AI review failed');
+    }
+
+    return response.json() as Promise<{ review?: Record<string, unknown> }>; 
+  },
+
   getEvents: () => getJson<EventItem[]>('/events'),
   getEvent: (id: number) => getJson<EventItem>(`/events/${id}`),
   createEvent: (payload: Omit<EventItem, 'id'>) => fetch(`${API_BASE}/events`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).then((r) => r.json() as Promise<EventItem>),
