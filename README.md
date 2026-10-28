@@ -1,5 +1,7 @@
 # ITELECT4 Frontend
 
+[![Frontend CI](https://github.com/ijlumbera088-cloud/itelect4-project/actions/workflows/ci.yml/badge.svg)](https://github.com/ijlumbera088-cloud/itelect4-project/actions/workflows/ci.yml)
+
 ## GitHub repository
 - Frontend repo: https://github.com/ijlumbera088-cloud/itelect4-project.git
 
